@@ -1,0 +1,179 @@
+﻿@model List<TaskManager.Models.TaskModel>
+
+@{
+    ViewBag.Title = "Task";
+    Layout = null;
+}
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-3.7.0.min.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<!-- jQuery -->
+
+@if (ViewBag.Mess != null)
+{
+    <div class="text-center" style="color:green; font-weight:bold;">
+        @ViewBag.Mess
+    </div>
+}
+@if (ViewBag.Error != null)
+{
+    <div class="text-center" style="color:red; font-weight:bold;">
+        @ViewBag.Error
+    </div>
+}
+<center><h2>Task</h2></center>
+<form id="frm" method="post">
+    <input type="hidden" id="id" name="id" />
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Title</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="Enter The Title..." />
+            </div>
+            <div class="col-sm-6">
+                <label>Description</label>
+                <input type="text" id="description" name="description" class="form-control" placeholder="Enter The Description..." />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <label>DueDate</label>
+                <input type="date" id="due_date" name="due_date" class="form-control" />
+            </div>
+            <div class="col-sm-6">
+                <label>Remarks</label>
+                <input type="text" id="remarks" name="remarks" class="form-control" placeholder="Enter The Description..." />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="button" id="btnupdate" class="btn btn-success">Update</button>
+    </div>
+</form>
+
+
+@if (Model != null && Model.Count > 0)
+{
+
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>DueDate</th>
+            <th>ReMarks</th>
+            <th>Created_On</th>
+            <th>Updated_On</th>
+            <th>Description</th>
+
+            <th>Actions</th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.id</td>
+                <td>@item.title</td>
+                <td>@item.due_date</td>
+                <td>@item.remarks</td>
+                <td>@item.create_on</td>
+                <td>@item.update_on</td>
+                <td>@item.description</td>
+
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="DeleteTask('@item.id')">Delete</button>
+                    <button type="button" class="btn btn-warning" onclick="EditTask('@item.id','@item.title','@item.due_date','@item.remarks','@item.description')">Edit</button>
+                </td>
+            </tr>
+        }
+
+    </table>
+}
+
+<script type="text/javascript">
+    $("#btnupdate").click(function () {
+        updateTask();
+    });
+
+
+    function DeleteTask(id) {
+        if (confirm('You Want To Delete This Item')) {
+            $.ajax({
+                type: "POST",
+                url: "/Task/DeleteData",
+                data: { id: id },
+                success: function (response) {
+                    if (response.result === "success") {
+                        alert('Data Deleted Successfully');
+                        location.href = "/Task/Index";
+                    } else {
+                        alert('Data Not Deleted');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error:", error);
+                    alert('Error while deleting record!');
+                }
+            });
+        }
+    }
+
+    function EditTask(id, title, due_date, remarks, description) {
+        debugger;
+
+        $('#id').val(id);
+        $('#title').val(title);
+        $('#description').val(description);
+        $('#remarks').val(remarks);
+
+        if (due_date) {
+
+            var parts = due_date.split(" ")[0].split("-");
+            var formattedDate = parts[2] + "-" + parts[1] + "-" + parts[0];
+            $("#due_date").val(formattedDate);
+        } else {
+            $("#due_date").val("");
+        }
+    }
+
+
+    function updateTask() {
+        debugger
+        var id = $('#id').val();
+        var title = $('#title').val();
+        var description = $('#description').val();
+        var due = $('#due_date').val();
+        var remarks = $('#remarks').val();
+
+        $.ajax({
+
+            type: "post",
+            url: "/Task/updateTask",
+            data: JSON.stringify({
+                id: id,
+                title: title,
+                description: description,
+                due_date: due,
+                remarks: remarks
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                debugger
+                if (response.result === "success") {
+                    alert('Task Updated Success');
+                    location.href = "/Task/Index";
+                }
+                else {
+                    alert('data not updated');
+                }
+            },
+            error: function (xhr, status, error) {
+                debugger
+                console.log("Error:", error);
+                alert('Error while update record!');
+            }
+        });
+    }
+</script>
